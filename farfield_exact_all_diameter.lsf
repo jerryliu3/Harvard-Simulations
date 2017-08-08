@@ -1,0 +1,48 @@
+#program that calculates the phase across a range of diameters for the FDTD project that is open
+
+#reference
+REF_Ex = matrix(100,1);
+REF_Ey = matrix(100,1);
+for(radius = 1:0.1:2)
+{
+    switchtolayout;
+    select("pillar");
+    set("enabled", 0);
+    run;
+    #reference farfield
+    for (i = 1:100) {
+    E = farfieldexact("monitor", 0, 0, 1e-4, i);
+    REF_Ex(i) = E(1); REF_Ey(i) = E(2);
+    }
+}
+switchtolayout;
+
+#pillar
+phasex = matrix(100, 11);
+phasey = matrix(100, 11);
+unwrapped_phasex = matrix(100, 11);
+transmission = matrix(100, 11);
+#change to vector and use length for other loops
+for(radius = 1:0.1:2)
+{
+    switchtolayout;
+    setnamed("pillar", "radius", radius*100*1e-9);
+    #also change the size of the substrate and FDTD region
+    run;
+    
+    #pillar farfield
+    for (i = 1:100) {
+    E = farfieldexact("monitor", 0, 0, 1e-4, i);
+    Ex(i, radius*10-9) = E(1); Ey(i, radius*10-9) = E(2);
+    }
+    
+    #phase
+    for (i = 1:100)
+    {
+        phasex(i, radius*10-9) = angle(Ex(i)) - angle(REF_Ex(i, radius*10-9));
+        phasey(i, radius*10-9) = angle(Ey(i)) - angle(REF_Ey(i, radius*10-9));
+    }	
+    unwrapped_phasex(:,radius*10-9) = unwrap(phasex);
+}
+matlabsave("data.mat");
+switchtolayout;

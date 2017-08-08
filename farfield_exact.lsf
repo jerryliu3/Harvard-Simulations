@@ -1,0 +1,24 @@
+#reference
+REF_Ex = matrix(100,1);
+REF_Ey = matrix(100,1);
+#reference farfield
+for (i = 1:100) {
+E = farfieldexact("monitor", 0, 0, 1e-4, i);
+REF_Ex(i) = E(1); REF_Ey(i) = E(2);
+}
+#pillar
+phasex = matrix(100, 1);
+phasey = matrix(100, 1);
+#pillar farfield
+for (i = 1:100) {
+E = farfieldexact("monitor", 0, 0, 1e-4, i);
+Ex(i) = E(1); Ey(i) = E(2);
+}
+
+#phase
+for (i = 1:100)
+{
+    phasex(i) = angle(Ex(i)) - angle(REF_Ex(i));
+    phasey(i) = angle(Ey(i)) - angle(REF_Ey(i));
+}
+unwrapped_phasex = unwrap(phasex);
