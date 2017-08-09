@@ -1,18 +1,22 @@
 #program that calculates the phase based on the given project FDTD that is open
 #must disable pillar, run reference, then enable pillar and run pillar
+switchtolayout;
+select("pillar");
+set("enabled", 0);
+run;
+#reference
+REF_Ex = matrix(100,1);
+REF_Ey = matrix(100,1);
+#reference farfield
+for (i = 1:100) {
+E = farfieldexact("monitor", 0, 0, 1e-4, i);
+REF_Ex(i) = E(1); REF_Ey(i) = E(2);
+}
 
-
-##reference
-#REF_Ex = matrix(100,1);
-#REF_Ey = matrix(100,1);
-##reference farfield
-#for (i = 1:100) {
-#E = farfieldexact("monitor", 0, 0, 1e-4, i);
-#REF_Ex(i) = E(1); REF_Ey(i) = E(2);
-#}
-
-
-
+switchtolayout;
+select("pillar");
+set("enabled", 1);
+run;
 #pillar
 phasex = matrix(100, 1);
 phasey = matrix(100, 1);
@@ -29,5 +33,5 @@ for (i = 1:100)
     phasey(i) = angle(Ey(i)) - angle(REF_Ey(i));
 }
 unwrapped_phasex = unwrap(phasex);
-
+matlabsave("data.mat");
 switchtolayout;
