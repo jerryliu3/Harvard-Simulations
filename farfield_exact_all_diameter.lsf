@@ -69,4 +69,4 @@ for(radius = 100:10:200)
 }
 frq_points = matrix(100, 1);
 frq_points = getdata("monitor", "f");
-matlabsave("data.mat");
+matlabsave("data_all_diameters.mat");
