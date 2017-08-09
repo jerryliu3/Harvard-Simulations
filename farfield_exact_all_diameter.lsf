@@ -1,48 +1,72 @@
 #program that calculates the phase across a range of diameters for the FDTD project that is open
-
+switchtolayout;
 #reference
 REF_Ex = matrix(100,1);
 REF_Ey = matrix(100,1);
-for(radius = 1:0.1:2)
-{
-    switchtolayout;
-    select("pillar");
-    set("enabled", 0);
-    run;
-    #reference farfield
-    for (i = 1:100) {
-    E = farfieldexact("monitor", 0, 0, 1e-4, i);
-    REF_Ex(i) = E(1); REF_Ey(i) = E(2);
-    }
-}
+select("pillar");
+set("enabled", 0);
+counter = 1;
+total = 11;
+#?"Reference";
+#for(radius = 1:0.1:2)
+#{
+    #?"Running "+num2str(counter)+" of "+num2str(total);
+    #switchtolayout;
+    #run;
+    ##reference farfield
+    #for (i = 1:100) {
+        #E = farfieldexact("monitor", 0, 0, 1e-4, i);
+        #REF_Ex(i) = E(1); REF_Ey(i) = E(2);
+    #}
+    #counter = counter + 1;
+#}
 switchtolayout;
-
+select("pillar");
+set("enabled", 1);
 #pillar
 phasex = matrix(100, 11);
 phasey = matrix(100, 11);
+Ex = matrix(100,11);
+Ey = matrix(100,11);
 unwrapped_phasex = matrix(100, 11);
-transmission = matrix(100, 11);
+pillar_transmission = matrix(100, 11);
+#transmission_counter = 1;
 #change to vector and use length for other loops
-for(radius = 1:0.1:2)
+counter = 1;
+total = 11;
+column = 1;
+?"Pillar";
+for(radius = 100:10:200)
 {
+    ?"Running "+num2str(counter)+" of "+num2str(total);  
     switchtolayout;
-    setnamed("pillar", "radius", radius*100*1e-9);
+    setnamed("pillar", "radius", radius*1e-9);
+    setnamed("substrate", "x span", radius*1e-9 + 500*1e-9);
+    setnamed("substrate", "y span", radius*1e-9 + 500*1e-9);
+    setnamed("FDTD", "x span", radius*1e-9 + 300*1e-9);
+    setnamed("FDTD", "y span", radius*1e-9 + 300*1e-9);
+    setnamed("monitor", "x span", radius*1e-9 + 500*1e-9);
+    setnamed("monitor", "y span", radius*1e-9 + 500*1e-9);
     #also change the size of the substrate and FDTD region
     run;
     
     #pillar farfield
     for (i = 1:100) {
-    E = farfieldexact("monitor", 0, 0, 1e-4, i);
-    Ex(i, radius*10-9) = E(1); Ey(i, radius*10-9) = E(2);
+        E = farfieldexact("monitor", 0, 0, 1e-4, i);
+        #?num2str(radius*10-9);
+        Ex(i, column) = E(1); Ey(i, column) = E(2);
     }
-    
+    pillar_transmission(:, column) = transmission("monitor");
     #phase
     for (i = 1:100)
     {
-        phasex(i, radius*10-9) = angle(Ex(i)) - angle(REF_Ex(i, radius*10-9));
-        phasey(i, radius*10-9) = angle(Ey(i)) - angle(REF_Ey(i, radius*10-9));
+        phasex(i, column) = angle(Ex(i, column)) - angle(REF_Ex(i));
+        phasey(i, column) = angle(Ey(i, column)) - angle(REF_Ey(i));
     }	
-    unwrapped_phasex(:,radius*10-9) = unwrap(phasex);
+    unwrapped_phasex(:,column) = unwrap(phasex(:, column));
+    column = column + 1;
+    counter = counter + 1;
 }
+frq_points = matrix(100, 1);
+frq_points = getdata("monitor", "f");
 matlabsave("data.mat");
-switchtolayout;
