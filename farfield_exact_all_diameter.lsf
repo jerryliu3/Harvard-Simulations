@@ -1,28 +1,27 @@
 #program that calculates the phase across a range of diameters for the FDTD project that is open
 switchtolayout;
 
-#constant parameters
+#constant parameters and setup
 radii = 100:5:300;
+setnamed("substrate", "x span", 2000*1e-9);
+setnamed("substrate", "y span", 2000*1e-9);
 #counter = 1;
 #total = 11;
 
 #reference
-REF_Ex = matrix(100,length(radii));
-REF_Ey = matrix(100,length(radii));
+REF_Ex = matrix(100,1);
+REF_Ey = matrix(100,1);
+switchtolayout;
 select("pillar");
 set("enabled", 0);
 ?"Reference";
-for(radius = 1:length(radii))
-{
-    ?"Running "+num2str(radius)+" of "+num2str(length(radii));
-    switchtolayout;
-    run;
-    #reference farfield
-    for (i = 1:100) {
-        E = farfieldexact("monitor", 0, 0, 1e-4, i);
-        REF_Ex(i, radius) = E(1); REF_Ey(i, radius) = E(2);
-    }
+run;
+#reference farfield
+for (i = 1:100) {
+    E = farfieldexact("monitor", 0, 0, 1e-4, i);
+    REF_Ex(i) = E(1); REF_Ey(i) = E(2);
 }
+    
 switchtolayout;
 select("pillar");
 set("enabled", 1);
@@ -41,12 +40,10 @@ for(radius = 1:length(radii))
     ?"Running "+num2str(radius)+" of "+num2str(length(radii));  
     switchtolayout;
     setnamed("pillar", "radius", radii(radius)*1e-9);
-    setnamed("substrate", "x span", radii(radius)*1e-9 + 500*1e-9);
-    setnamed("substrate", "y span", radii(radius)*1e-9 + 500*1e-9);
-    setnamed("FDTD", "x span", radii(radius)*1e-9 + 300*1e-9);
-    setnamed("FDTD", "y span", radii(radius)*1e-9 + 300*1e-9);
-    setnamed("monitor", "x span", radii(radius)*1e-9 + 500*1e-9);
-    setnamed("monitor", "y span", radii(radius)*1e-9 + 500*1e-9);
+    setnamed("FDTD", "x span", radii(radius)*2*1e-9 + 200*1e-9);
+    setnamed("FDTD", "y span", radii(radius)*2*1e-9 + 200*1e-9);
+    setnamed("monitor", "x span", radii(radius)*2*1e-9 + 300*1e-9);
+    setnamed("monitor", "y span", radii(radius)*2*1e-9 + 300*1e-9);
     run;
     
     #pillar farfield
@@ -59,8 +56,8 @@ for(radius = 1:length(radii))
     #phase
     for (i = 1:100)
     {
-        phasex(i, radius) = angle(Ex(i, radius)) - angle(REF_Ex(i, radius));
-        phasey(i, radius) = angle(Ey(i, radius)) - angle(REF_Ey(i, radius));
+        phasex(i, radius) = angle(Ex(i, radius)) - angle(REF_Ex(i));
+        phasey(i, radius) = angle(Ey(i, radius)) - angle(REF_Ey(i));
     }	
     unwrapped_phasex(:,radius) = unwrap(phasex(:, radius));
     #column = column + 1;
