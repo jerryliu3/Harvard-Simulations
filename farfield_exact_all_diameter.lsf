@@ -7,8 +7,8 @@ radii = 100:5:300;
 #total = 11;
 
 #reference
-REF_Ex = matrix(100,1);
-REF_Ey = matrix(100,1);
+REF_Ex = matrix(100,length(radii));
+REF_Ey = matrix(100,length(radii));
 select("pillar");
 set("enabled", 0);
 ?"Reference";
@@ -20,7 +20,7 @@ for(radius = 1:length(radii))
     #reference farfield
     for (i = 1:100) {
         E = farfieldexact("monitor", 0, 0, 1e-4, i);
-        REF_Ex(i) = E(1); REF_Ey(i) = E(2);
+        REF_Ex(i, radius) = E(1); REF_Ey(i, radius) = E(2);
     }
 }
 switchtolayout;
@@ -59,8 +59,8 @@ for(radius = 1:length(radii))
     #phase
     for (i = 1:100)
     {
-        phasex(i, radius) = angle(Ex(i, radius)) - angle(REF_Ex(i));
-        phasey(i, radius) = angle(Ey(i, radius)) - angle(REF_Ey(i));
+        phasex(i, radius) = angle(Ex(i, radius)) - angle(REF_Ex(i, radius));
+        phasey(i, radius) = angle(Ey(i, radius)) - angle(REF_Ey(i, radius));
     }	
     unwrapped_phasex(:,radius) = unwrap(phasex(:, radius));
     #column = column + 1;
@@ -68,4 +68,4 @@ for(radius = 1:length(radii))
 }
 frq_points = matrix(100, 1);
 frq_points = getdata("monitor", "f");
-matlabsave("data_all_diameters.mat");
+matlabsave("data_all_diameters2.mat");
