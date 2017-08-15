@@ -1,4 +1,4 @@
-#program that calculates the phase across a range of heights for the FDTD project that is open
+#program that calculates the phase across a range of diameters for the FDTD project that is open
 switchtolayout;
 
 #constant parameters and setup
@@ -11,6 +11,8 @@ setnamed("FDTD", "x span", radius*2*1e-9 + 200*1e-9);
 setnamed("FDTD", "y span", radius*2*1e-9 + 200*1e-9);
 setnamed("monitor", "x span", radius*2*1e-9 + 300*1e-9);
 setnamed("monitor", "y span", radius*2*1e-9 + 300*1e-9);
+#counter = 1;
+#total = 11;
 
 #reference
 REF_Ex = matrix(frq_points,1);

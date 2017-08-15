@@ -1,0 +1,98 @@
+#program that calculates the phase for a single diameter and height for the FDTD project that is open
+switchtolayout;
+
+#constant parameters and setup
+radii = 350:5:350;
+heights = 1000:100:1000;
+frq_points = 1;
+setnamed("substrate", "x span", 1*1e-5);
+setnamed("substrate", "y span", 1*1e-5);
+setnamed("FDTD", "z max", heights(length(heights))*1e-9 + 1200*1e-9);
+setnamed("reflectance_monitor", "z", heights(length(heights))*1e-9 + 1000*1e-9);
+setnamed("transmission_monitor", "z", -500*1e-9);
+setnamed("source", "z", heights(length(heights))*1e-9 + 750*1e-9);
+
+#reference	
+REF_Ex = matrix(frq_points,1);
+REF_Ey = matrix(frq_points,1);
+switchtolayout;
+select("pillar");
+set("enabled", 0);
+select("mesh");
+set("enabled", 0);
+?"Reference";
+run;
+#reference farfield
+for (i = 1:frq_points) {
+    E = farfieldexact("reflectance_monitor", 0, 0, 1e-4, i);
+    REF_Ex(i) = E(1); REF_Ey(i) = E(2);
+}
+    
+switchtolayout;
+select("pillar");
+set("enabled", 1);
+select("mesh");
+set("enabled", 1);
+
+#pillar
+phasex = matrix(frq_points, length(radii), length(heights));
+phasey = matrix(frq_points, length(radii), length(heights));
+Ex = matrix(frq_points,length(radii), length(heights));
+Ey = matrix(frq_points,length(radii), length(heights));
+unwrapped_phasex = matrix(frq_points, length(radii), length(heights));
+pillar_reflection = matrix(frq_points, length(radii), length(heights));
+pillar_transmission = matrix(frq_points, length(radii), length(heights));
+?"Pillar";
+
+for(radius = 1:length(radii))
+{
+    ?"Running "+num2str(radius)+" of "+num2str(length(radii));  
+    switchtolayout;
+    setnamed("pillar", "radius", radii(radius)*1e-9);
+    setnamed("FDTD", "x span", radii(radius)*2*1e-9 + 200*1e-9);
+    setnamed("FDTD", "y span", radii(radius)*2*1e-9 + 200*1e-9);
+    setnamed("reflectance_monitor", "x span", radii(radius)*2*1e-9 + 300*1e-9);
+    setnamed("reflectance_monitor", "y span", radii(radius)*2*1e-9 + 300*1e-9);
+    setnamed("transmission_monitor", "x span", radii(radius)*2*1e-9 + 300*1e-9);
+    setnamed("transmission_monitor", "y span", radii(radius)*2*1e-9 + 300*1e-9);
+    setnamed("mesh", "x span", radii(radius)*2*1e-9 + 100*1e-9);
+    setnamed("mesh", "y span", radii(radius)*2*1e-9 + 100*1e-9);
+        
+    
+    for(height = 1:length(heights))
+    {
+        ?"Running "+num2str(height)+" of "+num2str(length(heights));  
+        switchtolayout;
+        setnamed("pillar", "z max", heights(height)*1e-9);
+        setnamed("mesh", "z max", heights(height)*1e-9 + 100*1e-9);
+        run;
+        
+        #pillar farfield
+        for (i = 1:frq_points) {
+            E = farfieldexact("reflectance_monitor", 0, 0, 1e-4, i);
+            Ex(i, radius, height) = E(1); Ey(i, radius, height) = E(2);
+        }
+        pillar_reflection(:, radius, height) = transmission("reflectance_monitor");
+        pillar_transmission(:, radius, height) = transmission("transmission_monitor");
+        #phase
+        for (i = 1:frq_points)
+        {
+            phasex(i, radius, height) = angle(Ex(i,radius, height)) - angle(REF_Ex(i));
+            phasey(i, radius, height) = angle(Ey(i, radius, height)) - angle(REF_Ey(i));
+        }	
+        unwrapped_phasex(:, radius, height) = unwrap(phasex(:, radius,height));
+        
+        frequencies = matrix(frq_points, 1);
+        frequencies = getdata("reflectance_monitor", "f");       
+        r = pillar_reflection(:, radius, height);
+        t = pillar_transmission(:, radius, height);
+        px = phasex(:, radius, height);
+        py = phasey(:, radius, height);
+        upx = unwrapped_phasex(:, radius, height);
+        matlabsave("data_" + num2str(radius*2) + "_" + num2str(height) +".mat", t, px, py, upx, frequencies);    
+    }
+}
+
+frequencies = matrix(frq_points, 1);
+frequencies = getdata("reflectance_monitor", "f");
+matlabsave("data_1_diameters_heights.mat");
