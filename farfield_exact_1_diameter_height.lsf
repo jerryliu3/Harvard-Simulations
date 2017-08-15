@@ -2,21 +2,25 @@
 switchtolayout;
 
 #constant parameters and setup
-radii = 350:5:350;
-heights = 1000:100:1000;
+radii = 325:5:325;
+heights = 500:100:500;
 frq_points = 1;
+nm = 1e-9;
 setnamed("substrate", "x span", 1*1e-5);
 setnamed("substrate", "y span", 1*1e-5);
-setnamed("FDTD", "z max", heights(length(heights))*1e-9 + 1200*1e-9);
-setnamed("reflectance_monitor", "z", heights(length(heights))*1e-9 + 1000*1e-9);
-setnamed("transmission_monitor", "z", -500*1e-9);
-setnamed("source", "z", heights(length(heights))*1e-9 + 750*1e-9);
+setnamed("substrate_reflector", "outer radius", 0.5*1e-5);
+setnamed("FDTD", "z max", heights(length(heights))*nm + 1200*nm);
+setnamed("reflectance_monitor", "z", heights(length(heights))*nm + 1000*nm);
+setnamed("transmission_monitor", "z", -500*nm);
+setnamed("source", "z", heights(length(heights))*nm + 750*nm);
 
 #reference	
 REF_Ex = matrix(frq_points,1);
 REF_Ey = matrix(frq_points,1);
 switchtolayout;
 select("pillar");
+set("enabled", 0);
+select("pillar_reflector");
 set("enabled", 0);
 select("mesh");
 set("enabled", 0);
@@ -30,6 +34,8 @@ for (i = 1:frq_points) {
     
 switchtolayout;
 select("pillar");
+set("enabled", 1);
+select("pillar_reflector");
 set("enabled", 1);
 select("mesh");
 set("enabled", 1);
@@ -48,23 +54,27 @@ for(radius = 1:length(radii))
 {
     ?"Running "+num2str(radius)+" of "+num2str(length(radii));  
     switchtolayout;
-    setnamed("pillar", "radius", radii(radius)*1e-9);
-    setnamed("FDTD", "x span", radii(radius)*2*1e-9 + 200*1e-9);
-    setnamed("FDTD", "y span", radii(radius)*2*1e-9 + 200*1e-9);
-    setnamed("reflectance_monitor", "x span", radii(radius)*2*1e-9 + 300*1e-9);
-    setnamed("reflectance_monitor", "y span", radii(radius)*2*1e-9 + 300*1e-9);
-    setnamed("transmission_monitor", "x span", radii(radius)*2*1e-9 + 300*1e-9);
-    setnamed("transmission_monitor", "y span", radii(radius)*2*1e-9 + 300*1e-9);
-    setnamed("mesh", "x span", radii(radius)*2*1e-9 + 100*1e-9);
-    setnamed("mesh", "y span", radii(radius)*2*1e-9 + 100*1e-9);
+    setnamed("pillar", "radius", radii(radius)*nm);
+    setnamed("substrate_reflector", "inner radius", radii(radius)*nm);
+    setnamed("pillar_reflector", "radius", radii(radius)*nm);
+    setnamed("FDTD", "x span", radii(radius)*2*nm + 350*nm);
+    setnamed("FDTD", "y span", radii(radius)*2*nm + 350*nm);
+    setnamed("reflectance_monitor", "x span", radii(radius)*2*nm + 400*nm);
+    setnamed("reflectance_monitor", "y span", radii(radius)*2*nm + 400*nm);
+    setnamed("transmission_monitor", "x span", radii(radius)*2*nm + 400*nm);
+    setnamed("transmission_monitor", "y span", radii(radius)*2*nm + 400*nm);
+    setnamed("mesh", "x span", radii(radius)*2*nm + 100*nm);
+    setnamed("mesh", "y span", radii(radius)*2*nm + 100*nm);
         
     
     for(height = 1:length(heights))
     {
         ?"Running "+num2str(height)+" of "+num2str(length(heights));  
         switchtolayout;
-        setnamed("pillar", "z max", heights(height)*1e-9);
-        setnamed("mesh", "z max", heights(height)*1e-9 + 100*1e-9);
+        setnamed("pillar", "z max", heights(height)*nm);
+        setnamed("pillar_reflector", "z max", heights(height)*nm + 80*nm);
+        setnamed("pillar_reflector", "z min", heights(height)*nm);
+        setnamed("mesh", "z max", heights(height)*nm + 100*nm);
         run;
         
         #pillar farfield
