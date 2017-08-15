@@ -1,0 +1,70 @@
+#program that calculates the phase across a range of heights for the FDTD project that is open
+switchtolayout;
+
+#constant parameters and setup
+radius = 350*1e-9;
+heights = 100:5:300;
+frq_points = 1;
+setnamed("substrate", "x span", 1*1e-5);
+setnamed("substrate", "y span", 1*1e-5);
+setnamed("FDTD", "x span", radius*2*1e-9 + 200*1e-9);
+setnamed("FDTD", "y span", radius*2*1e-9 + 200*1e-9);
+setnamed("monitor", "x span", radius*2*1e-9 + 300*1e-9);
+setnamed("monitor", "y span", radius*2*1e-9 + 300*1e-9);
+
+#reference
+REF_Ex = matrix(frq_points,1);
+REF_Ey = matrix(frq_points,1);
+switchtolayout;
+select("pillar");
+set("enabled", 0);
+?"Reference";
+run;
+#reference farfield
+for (i = 1:frq_points) {
+    E = farfieldexact("monitor", 0, 0, 1e-4, i);
+    REF_Ex(i) = E(1); REF_Ey(i) = E(2);
+}
+    
+switchtolayout;
+select("pillar");
+set("enabled", 1);
+
+#pillar
+phasex = matrix(frq_points, length(heights));
+phasey = matrix(frq_points, length(heights));
+Ex = matrix(frq_points,length(heights));
+Ey = matrix(frq_points,length(heights));
+unwrapped_phasex = matrix(frq_points, length(heights));
+pillar_transmission = matrix(frq_points, length(heights));
+#column = 1;
+?"Pillar";
+for(height = 1:length(heights))
+{
+    ?"Running "+num2str(radius)+" of "+num2str(length(radii));  
+    switchtolayout;
+    setnamed("pillar", "z max", heights(height)*1e-9);
+    setnamed("FDTD", "z max", heights(height)*1e-9 + 1000*1e-9);
+    setnamed("monitor", "z max", heights(height)*1e-9 + 700*1e-9);
+    run;
+    
+    #pillar farfield
+    for (i = 1:frq_points) {
+        E = farfieldexact("monitor", 0, 0, 1e-4, i);
+        #?num2str(radius*10-9);
+        Ex(i, height) = E(1); Ey(i, height) = E(2);
+    }
+    pillar_transmission(:, height) = transmission("monitor");
+    #phase
+    for (i = 1:frq_points)
+    {
+        phasex(i, height) = angle(Ex(i, height)) - angle(REF_Ex(i));
+        phasey(i, height) = angle(Ey(i, height)) - angle(REF_Ey(i));
+    }	
+    unwrapped_phasex(:,height) = unwrap(phasex(:, height));
+    #column = column + 1;
+    #counter = counter + 1;
+}
+frequencies = matrix(frq_points, 1);
+frequencies = getdata("monitor", "f");
+matlabsave("data_all_heights.mat");
