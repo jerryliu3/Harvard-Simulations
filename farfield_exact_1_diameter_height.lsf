@@ -99,7 +99,7 @@ for(radius = 1:length(radii))
         px = phasex(:, radius, height);
         py = phasey(:, radius, height);
         upx = unwrapped_phasex(:, radius, height);
-        matlabsave("data_" + num2str(radius*2) + "_" + num2str(height) +".mat", t, px, py, upx, frequencies);    
+        matlabsave("data_" + num2str(radius*2) + "_" + num2str(height) +".mat", r, t, px, py, upx, frequencies);    
     }
 }
 

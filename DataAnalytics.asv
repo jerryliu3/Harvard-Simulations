@@ -1,0 +1,12 @@
+c = 2.998e8;
+radii = 350:5:500;
+heights = 500:100:1500;
+for height = 1:11
+figure;
+%imagesc(wavelengths (100), radius (401), phasex (100x401) transpose)
+imagesc(radius*2, heights(height), mod(unwrapped_phasex, 2*pi)');
+colorbar;
+figure;
+imagesc(radii, heights(height), pillar_reflection');
+colorbar;
+end

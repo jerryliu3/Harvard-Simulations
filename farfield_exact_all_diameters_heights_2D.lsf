@@ -2,7 +2,7 @@
 switchtolayout;
 
 #constant parameters and setup
-radii = 325:5:500;
+radii = 325:5:750;
 heights = 500:100:1500;
 frq_points = 1;
 nm = 1e-9;
@@ -41,16 +41,16 @@ select("mesh");
 set("enabled", 1);
 
 #pillar
-phasex = matrix(frq_points, length(radii), length(heights));
-phasey = matrix(frq_points, length(radii), length(heights));
-Ex = matrix(frq_points,length(radii), length(heights));
-Ey = matrix(frq_points,length(radii), length(heights));
-unwrapped_phasex = matrix(frq_points, length(radii), length(heights));
-pillar_reflection = matrix(frq_points, length(radii), length(heights));
-pillar_transmission = matrix(frq_points, length(radii), length(heights));
+phasex = matrix(length(radii), length(heights));
+phasey = matrix(length(radii), length(heights));
+Ex = matrix(length(radii), length(heights));
+Ey = matrix(length(radii), length(heights));
+unwrapped_phasex = matrix(length(radii), length(heights));
+pillar_reflection = matrix(length(radii), length(heights));
+pillar_transmission = matrix(length(radii), length(heights));
 ?"Pillar";
 
-for(radius = 1:length(radii))
+for(radius = 5:length(radii))
 {
     ?"Running "+num2str(radius)+" of "+num2str(length(radii));  
     switchtolayout;
@@ -80,25 +80,25 @@ for(radius = 1:length(radii))
         #pillar farfield
         for (i = 1:frq_points) {
             E = farfieldexact("reflectance_monitor", 0, 0, 1e-4, i);
-            Ex(i, radius, height) = E(1); Ey(i, radius, height) = E(2);
+            Ex(radius, height) = E(1); Ey(radius, height) = E(2);
         }
-        pillar_reflection(:, radius, height) = transmission("reflectance_monitor");
-        pillar_transmission(:, radius, height) = transmission("transmission_monitor");
+        pillar_reflection(radius, height) = transmission("reflectance_monitor");
+        pillar_transmission(radius, height) = transmission("transmission_monitor");
         #phase
         for (i = 1:frq_points)
         {
-            phasex(i, radius, height) = angle(Ex(i,radius, height)) - angle(REF_Ex(i));
-            phasey(i, radius, height) = angle(Ey(i, radius, height)) - angle(REF_Ey(i));
+            phasex(radius, height) = angle(Ex(radius, height)) - angle(REF_Ex(i));
+            phasey(radius, height) = angle(Ey(radius, height)) - angle(REF_Ey(i));
         }	
-        unwrapped_phasex(:, radius, height) = unwrap(phasex(:, radius,height));
+        unwrapped_phasex(radius, height) = unwrap(phasex(radius,height));
         
         frequencies = matrix(frq_points, 1);
         frequencies = getdata("reflectance_monitor", "f");       
-        r = pillar_reflection(:, radius, height);
-        t = pillar_transmission(:, radius, height);
-        px = phasex(:, radius, height);
-        py = phasey(:, radius, height);
-        upx = unwrapped_phasex(:, radius, height);
+        r = pillar_reflection(radius, height);
+        t = pillar_transmission(radius, height);
+        px = phasex(radius, height);
+        py = phasey(radius, height);
+        upx = unwrapped_phasex(radius, height);
         matlabsave("data_" + num2str(radius*2) + "_" + num2str(height) +".mat", r, t, px, py, upx, frequencies);    
     }
 }
