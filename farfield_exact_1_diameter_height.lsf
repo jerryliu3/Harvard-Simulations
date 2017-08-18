@@ -2,7 +2,7 @@
 switchtolayout;
 
 #constant parameters and setup
-radii = 325:5:325;
+radii = 330:5:330;
 heights = 500:100:500;
 frq_points = 1;
 nm = 1e-9;
